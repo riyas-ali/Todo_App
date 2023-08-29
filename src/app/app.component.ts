@@ -10,10 +10,7 @@ export class AppComponent implements OnInit {
   title = 'Todo';
   modal = false;
   editModal = false;
-  todos = [
-    {"id": 1,"title":"Buy milk", "completed":false},
-    {"id": 2,"title":"Wash the car", "completed":true},
-  ]
+  todos: any= []
   editContent: any;
 
   constructor(private mainService: MainService) {}
@@ -23,27 +20,41 @@ export class AppComponent implements OnInit {
   }
 
   getTodos() {
-    
+    this.mainService.getTodos().subscribe((data: any) => {
+      this.todos = data.result;
+    })
   }
 
 
   updatelist(todo:any) {
-    this.todos.forEach(item => {
-      if(item.id == todo.id) {
-        item.completed = !item.completed
+    todo.completed = !todo.completed
+    let params = {
+      "completed": todo.completed
+    }
+    console.log(params);
+    
+    this.todos.forEach((item:any) => {
+      if(item._id == todo._id) {
+        this.mainService.updateStatus(todo._id, params).subscribe((response: any) => {
+          this.getTodos()
+        });
       }
     });
+    
   }
 
   addNewItem(todo:any) {
-    let newId = Math.max(...this.todos.map((item: any)=>{return parseInt(item.id)}))
-    let newTodo = {
-      "id": newId + 1,
+    let params = {
       "title": todo,
       "completed": false
     }
-    this.todos.unshift(newTodo);
-    this.modal = false;
+    this.mainService.addTodo(params).subscribe((data: any) => {
+      if(data){
+        console.log(data);
+        this.getTodos()
+        this.modal = false;
+      }
+    })
   }
 
   editItem(todo:any) {
@@ -52,19 +63,19 @@ export class AppComponent implements OnInit {
   }
 
   saveEditItem(value: any) {
-    this.todos.forEach(element => {
-      if (element.id === this.editContent.id) {
-        element.title = value;
+    let params = { "title": value }
+    this.mainService.updateTitle(this.editContent._id, params).subscribe((result: any) => {
+      if(result) {
+        this.editModal = false;
+        this.getTodos()
       }
     })
-    this.editModal = false;
   }
 
   deleteItem(todo: any) {
-    this.todos.forEach(item => {
-      if (item.id == todo.id) {
-        const index = this.todos.indexOf(item);
-        this.todos.splice(index, 1);
+    this.mainService.deleteTodo(todo._id).subscribe((data:any) => {
+      if(data) {
+        this.getTodos()
       }
     })
   }
