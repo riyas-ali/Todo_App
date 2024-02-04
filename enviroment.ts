@@ -1,5 +1,5 @@
 const enviroment = {
-  back_end: "http://localhost:3000"
+  back_end: "https://todo-back-end-nine.vercel.app/"
 } 
 
 export { enviroment };
